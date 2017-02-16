@@ -1,0 +1,26 @@
+{
+  "manifest_version": 2,
+  "name": "AutomationHeatMap",
+  "description": "AutomationHeatMap",
+  "version": "0.1.0",
+  "browser_action": {
+    "default_icon": "prism-icon.png",
+    "default_popup": "prism-popup.html",
+    "default_title": "prism-Hananish"
+  },
+  "background": {
+    "scripts": ["prism-background.js"]
+  },
+  "permissions": [
+    "activeTab"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "http://myd-vm12623.hpeswlab.net/*", "http://myd-vm12624.hpeswlab.net/*"
+      ],
+      "css": ["ahm-style.css"],
+      "js": ["jobs-short-names.js", "prism-content.js"]
+    }
+  ]
+}
