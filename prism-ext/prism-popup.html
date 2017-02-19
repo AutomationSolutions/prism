@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>AutomationHeatMap</title>
+    <script src="jquery-3.1.1.min.js"></script>
+    <script src="jobs-short-names.js"></script>
+    <script src="prism-popup.js"></script>
+    <link type="text/css" href="prism-popup.css" rel="stylesheet">
+</head>
+<body>
+<div class="prism-main">
+    <div class="header">Automation heat map</div>
+    <div>
+        <input id="prism-add-new-alias-job" type="text" placeholder="Set Job UI Name">
+        <input id="prism-add-new-url-job" type="text" placeholder="Paste job URL here">
+        <button id="add-job-button" onclick="addNewJob()">Add</button>
+    </div>
+    <div id="checkbox-container">
+    </div>
+    <div class="footer">&copy; ALM Octane</div>
+    <button class="remove-from-storage-btn" onclick="deleteFromLocalStorage()">Remove</button>
+</div>
+</body>
+</html>

@@ -1,22 +1,19 @@
 .prism-main {
-    width: 300px;
+    width: 500px;
     height: 200px;
 }
 
 .header {
     background: linear-gradient(to bottom right, yellow, red);
-    position: absolute;
-    top: 0;
     width: 300px;
     height: 25px;
     margin-top: 10px;
     text-align: center;
-    font-size: initial;
     font-family: cursive;
     font-weight: bold;
 }
 
-.radio-container {
+.checkbox-container {
     margin-top: 45px;
 }
 
@@ -26,9 +23,10 @@
 }
 
 .footer{
-    position: absolute;
-    bottom: 10px;
     width: 300px;
-    text-align: left;
     font-family: cursive;
+}
+
+.remove-from-storage-btn {
+    float: right;
 }

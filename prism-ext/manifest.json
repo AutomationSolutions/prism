@@ -19,7 +19,7 @@
       "matches": [
         "http://myd-vm12623.hpeswlab.net/*", "http://myd-vm12624.hpeswlab.net/*"
       ],
-      "css": ["ahm-style.css"],
+      "css": ["prism-popup.css"],
       "js": ["jobs-short-names.js", "prism-content.js"]
     }
   ]
