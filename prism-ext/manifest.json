@@ -9,18 +9,22 @@
     "default_title": "prism-Hananish"
   },
   "background": {
-    "scripts": ["prism-background.js"]
+    "scripts": ["prism-parser.js", "prism-popup.js"],
+    "persistent": false
   },
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "http://*/*",
+    "https://*/*"
   ],
+  "content_security_policy": "script-src 'self'; object-src 'self'",
   "content_scripts": [
     {
       "matches": [
         "http://myd-vm12623.hpeswlab.net/*", "http://myd-vm12624.hpeswlab.net/*"
       ],
       "css": ["prism-popup.css"],
-      "js": ["jobs-short-names.js", "prism-content.js"]
+      "js": ["prism-content.js"]
     }
   ]
 }

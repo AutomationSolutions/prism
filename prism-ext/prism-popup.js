@@ -9,6 +9,8 @@
   $(document).ready(function() {
     config = loadFromLocalStorage();
     drawAllUIElements(config);
+    $('#add-job-button')[0].addEventListener('click', addNewJob);
+    $('.remove-from-storage-btn')[0].addEventListener('click', deleteFromLocalStorage);
   });
 
   function addJobElementToUI(alias, checked, parentElement) {
@@ -67,18 +69,6 @@
     localStorage.setItem("prism-settings", JSON.stringify(config));
   }
 
-  function onPrismCheckboxCheck() {
-    var classList = {
-      allClasses: ahmShortNames,
-      activeClass: this.value
-    };
-
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, {data: classList}, function(response) {
-      });
-    });
-  }
-
   function setAttributes(el, attrs) {
     for (var key in attrs) {
       $(el).attr(key, attrs[key]);
@@ -101,15 +91,54 @@
     drawAllUIElements(config);
     alias.val('');
     url.val('');
+
+    returnParsedOutput(config);
+    addClassToBodyElement(config);
   }
-  
+
   function deleteFromLocalStorage() {
+    removeAllClassesFromBodyElement(config);
     config.jobs = [];
     saveToLocalStorage(config);
     drawAllUIElements(config);
   }
 
-  window.addNewJob = addNewJob;
-  window.deleteFromLocalStorage = deleteFromLocalStorage;
+  function addClassToBodyElement(config) {
+    var message = {
+      className: config.jobs[config.jobs.length - 1].alias,
+      actionType: 'add class'
+    };
+    sendMessage(message);
+  }
+  
+  function removeAllClassesFromBodyElement(config) {
+    for (var i = 0; i < config.jobs.length; i++) {
+      var message = {
+        className: config.jobs[i].alias,
+        actionType: 'remove class'
+      };
+      sendMessage(message);
+    }
+  }
+
+  function sendMessage(message) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {data: message}, function(response) {
+      });
+    });
+
+  }
+
+  function onPrismCheckboxCheck() {
+    var classList = {
+      allClasses: ahmShortNames,
+      activeClass: this.value
+    };
+
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {data: classList}, function(response) {
+      });
+    });
+  }
 
 })();
