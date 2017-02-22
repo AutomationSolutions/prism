@@ -34,3 +34,11 @@
 .color-btn {
     float: right;
 }
+
+.add-jobs-input{
+    display: block;
+}
+
+#add-job-button {
+    float: right;
+}

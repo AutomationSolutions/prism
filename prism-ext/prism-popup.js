@@ -17,6 +17,8 @@
 
   //Add New Job To UI
   function addNewJobToLocalStorageAndUI() {
+    hideShowElementsInPopup('add-jobs-input');
+
     var alias = $('#prism-add-new-alias-job');
     var url = $('#prism-add-new-url-job');
 
@@ -67,7 +69,14 @@
 
   //General Utils
   function addJobElementToUI(alias, checked, parentElement) {
+    var allJobs = config.jobs;
+    var jobNameFromURL = '';
+    var jobName = '';
 
+    for (var i = 0; i < config.jobs.length; i++) {
+      jobNameFromURL = allJobs[i].url.substring(allJobs[i].url.lastIndexOfEnd('job/'), allJobs[i].url.length - 1);
+      jobName = allJobs[i].alias == alias ? jobNameFromURL : '';
+    }
     var divElementsContainer = document.createElement('div');
     divElementsContainer.id = alias + '-div';
     parentElement[0].appendChild(divElementsContainer);
@@ -81,7 +90,7 @@
 
 
     var labelElement = document.createElement('label');
-    var labelAttributes = {class: 'label-txt'};
+    var labelAttributes = {class: 'label-txt', title: jobName};
     labelElement.innerHTML = alias;
     setAttributes(labelElement, labelAttributes);
     divElementsContainer.appendChild(labelElement);
@@ -143,5 +152,18 @@
 
   function removeStyleFromHead() {
     sendMessage({actionType: 'remove style from header'});
+  }
+
+
+  function hideShowElementsInPopup(selector) {
+    var listOfElementsToHideShow = document.getElementsByClassName(selector);
+    for (var i = 0; i < listOfElementsToHideShow.length; i++) {
+      listOfElementsToHideShow[i].style.display = 'none';
+    }
+  }
+
+  String.prototype.lastIndexOfEnd = function(string) {
+    var io = this.lastIndexOf(string);
+    return io == -1 ? -1 : io + string.length;
   }
 })();
