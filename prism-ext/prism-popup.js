@@ -123,23 +123,25 @@
     config.jobs = [];
     saveToLocalStorage(config);
     drawAllUIElements(config);
+    removeStyleFromHead();
   }
-  
+
   function getLogsDone(logsArray) {
     var cssRulesInOneLine = logsArray.join('\n');
+    removeStyleFromHead();
+    addStyleToHead(cssRulesInOneLine);
+  }
+
+  function addStyleToHead(cssRules) {
     var message = {
-      cssStyleRules: cssRulesInOneLine,
+      cssStyleRules: cssRules,
       actionType: 'add style to header',
-      styleID: 'aaaa'
+      styleID: 'prism-style'
     };
     sendMessage(message);
   }
-  
-  function addStyleToHead() {
-    
-  }
-  function removeStyleFromHead() {
-    
-  }
 
+  function removeStyleFromHead() {
+    sendMessage({actionType: 'remove style from header'});
+  }
 })();

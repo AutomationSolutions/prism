@@ -16,10 +16,13 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     } else {
       style.appendChild(document.createTextNode(cssRules));
     }
-    head.appendChild(style);
-
-    var styleElementsCount = head.getElementsByTagName('style').length - 1;
-    head.getElementsByTagName('style')[styleElementsCount].setAttribute('Hanan', 'Hanan');
+    var styleElement = head.appendChild(style);
+    styleElement.setAttribute('id', data.styleID);
+  }
+  else if (data.actionType == 'remove style from header') {
+    if (!(document.head.querySelector('[id="prism-style"]') == undefined)) {
+      document.head.querySelector('[id="prism-style"]').remove();
+    }
   }
   sendResponse({data: data, success: true});
 });
