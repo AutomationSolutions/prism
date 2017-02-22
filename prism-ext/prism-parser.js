@@ -36,7 +36,6 @@ function returnedParsedOutput(fullLog, config) {
   return countDuplications(arrayOfCSSElements, config);
 }
 
-
 function countDuplications(elementsArray, config) {
   var mapOfElements = {};
   var sortedElementList = [];

@@ -3,10 +3,7 @@
  */
 
 (function() {
-
   var config;
-
-
   //Events registration
   $(document).ready(function() {
     config = loadFromLocalStorage();
@@ -17,7 +14,6 @@
       getLogs(config, getLogsDone)
     });
   });
-
 
   //Add New Job To UI
   function addNewJobToLocalStorageAndUI() {
@@ -39,13 +35,11 @@
     $('input[type=text]').val('');
   }
 
-
   //Manipulating checkbox in UI
   function onChangeJobCheckbox() {
     var checkboxId = this.id;
     for (var i = 0; i < config.jobs.length; i++) {
       if (config.jobs[i].alias === checkboxId.replace('checkbox-btn-', '')) {
-        var index = i;
         if (config.jobs[i].active == true) {
           config.jobs[i].active = false;
         } else {
@@ -57,7 +51,6 @@
       drawAllUIElements(config);
     }
   }
-
 
   //Remove job/s from UI
   function drawAllUIElements(config) {
@@ -71,9 +64,6 @@
 
     $('input[type=checkbox]').on('change', onChangeJobCheckbox);
   }
-
-  //Rules Activation
-
 
   //General Utils
   function addJobElementToUI(alias, checked, parentElement) {
@@ -137,25 +127,19 @@
   
   function getLogsDone(logsArray) {
     var cssRulesInOneLine = logsArray.join('\n');
-    console.log('cssStyleRules');
-
     var message = {
       cssStyleRules: cssRulesInOneLine,
-      actionType: 'add style to header'
+      actionType: 'add style to header',
+      styleID: 'aaaa'
     };
     sendMessage(message);
   }
-
-  function onPrismCheckboxCheck() {
-
-    var classList = {
-      allClasses: ahmShortNames,
-      activeClass: this.value
-    };
-
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, {data: classList}, function(response) {
-      });
-    });
+  
+  function addStyleToHead() {
+    
   }
+  function removeStyleFromHead() {
+    
+  }
+
 })();
