@@ -6,13 +6,76 @@
 
   var config;
 
+
+  //Events registration
   $(document).ready(function() {
     config = loadFromLocalStorage();
     drawAllUIElements(config);
-    $('#add-job-button')[0].addEventListener('click', addNewJob);
-    $('.remove-from-storage-btn')[0].addEventListener('click', deleteFromLocalStorage);
+    $('#add-job-button').bind('click', addNewJobToLocalStorageAndUI);
+    $('.remove-from-storage-btn').bind('click', deleteFromLocalStorage);
+    $('.color-btn').bind('click', function() {
+      getLogs(config, getLogsDone)
+    });
   });
 
+
+  //Add New Job To UI
+  function addNewJobToLocalStorageAndUI() {
+    var alias = $('#prism-add-new-alias-job');
+    var url = $('#prism-add-new-url-job');
+
+    //TODO: Add validation check
+
+    config.jobs.push({
+      alias: alias.val(),
+      url: url.val(),
+      active: false,
+    });
+
+    saveToLocalStorage(config);
+
+    drawAllUIElements(config);
+
+    $('input[type=text]').val('');
+  }
+
+
+  //Manipulating checkbox in UI
+  function onChangeJobCheckbox() {
+    var checkboxId = this.id;
+    for (var i = 0; i < config.jobs.length; i++) {
+      if (config.jobs[i].alias === checkboxId.replace('checkbox-btn-', '')) {
+        var index = i;
+        if (config.jobs[i].active == true) {
+          config.jobs[i].active = false;
+        } else {
+          config.jobs[i].active = true;
+        }
+        i = config.jobs.length;
+      }
+      saveToLocalStorage(config);
+      drawAllUIElements(config);
+    }
+  }
+
+
+  //Remove job/s from UI
+  function drawAllUIElements(config) {
+
+    var parentElement = $('#checkbox-container');
+    parentElement.empty();
+    for (var i = 0; i < config.jobs.length; i++) {
+      addJobElementToUI(config.jobs[i].alias, config.jobs[i].active, parentElement);
+    }
+    //TODO: Draw Counter & XPATH radio buttons
+
+    $('input[type=checkbox]').on('change', onChangeJobCheckbox);
+  }
+
+  //Rules Activation
+
+
+  //General Utils
   function addJobElementToUI(alias, checked, parentElement) {
 
     var divElementsContainer = document.createElement('div');
@@ -32,24 +95,22 @@
     labelElement.innerHTML = alias;
     setAttributes(labelElement, labelAttributes);
     divElementsContainer.appendChild(labelElement);
-
-    $('#prism-add-new-job-alias').val('');
-    $('#prism-add-new-job-url').val('');
-
-    // document.getElementById(jobName + '-div').addEventListener('change', onPrismCheckboxCheck);
   }
 
-  function drawAllUIElements(config) {
+  function sendMessage(message) {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.tabs.sendMessage(tabs[0].id, {data: message}, function(response) {
+      });
+    });
 
-    var parentElement = $('#checkbox-container');
-    parentElement.empty();
-    for (var i = 0; i < config.jobs.length; i++) {
-      addJobElementToUI(config.jobs[i].alias, config.jobs[i].active, parentElement);
+  }
+
+  function setAttributes(el, attrs) {
+    for (var key in attrs) {
+      $(el).attr(key, attrs[key]);
     }
-    //TODO: Draw Counter & XPATH radio buttons
   }
 
-//Return an object in order to create DOM
   function loadFromLocalStorage() {
     var config;
     var configJson = localStorage.getItem("prism-settings");
@@ -64,72 +125,29 @@
     return config;
   }
 
-//Adding the elements to local storage configuration
   function saveToLocalStorage(config) {
     localStorage.setItem("prism-settings", JSON.stringify(config));
   }
 
-  function setAttributes(el, attrs) {
-    for (var key in attrs) {
-      $(el).attr(key, attrs[key]);
-    }
-  }
-
-  function addNewJob() {
-    var alias = $('#prism-add-new-alias-job');
-    var url = $('#prism-add-new-url-job');
-
-    //TODO: Add validation check 
-
-    config.jobs.push({
-      alias: alias.val(),
-      url: url.val(),
-      active: true
-    });
-
-    saveToLocalStorage(config);
-    drawAllUIElements(config);
-    alias.val('');
-    url.val('');
-
-    returnParsedOutput(config);
-    addClassToBodyElement(config);
-  }
-
   function deleteFromLocalStorage() {
-    removeAllClassesFromBodyElement(config);
     config.jobs = [];
     saveToLocalStorage(config);
     drawAllUIElements(config);
   }
+  
+  function getLogsDone(logsArray) {
+    var cssRulesInOneLine = logsArray.join('\n');
+    console.log('cssStyleRules');
 
-  function addClassToBodyElement(config) {
     var message = {
-      className: config.jobs[config.jobs.length - 1].alias,
-      actionType: 'add class'
+      cssStyleRules: cssRulesInOneLine,
+      actionType: 'add style to header'
     };
     sendMessage(message);
   }
-  
-  function removeAllClassesFromBodyElement(config) {
-    for (var i = 0; i < config.jobs.length; i++) {
-      var message = {
-        className: config.jobs[i].alias,
-        actionType: 'remove class'
-      };
-      sendMessage(message);
-    }
-  }
-
-  function sendMessage(message) {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, {data: message}, function(response) {
-      });
-    });
-
-  }
 
   function onPrismCheckboxCheck() {
+
     var classList = {
       allClasses: ahmShortNames,
       activeClass: this.value
@@ -140,5 +158,4 @@
       });
     });
   }
-
 })();

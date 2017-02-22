@@ -2,63 +2,84 @@
  * Created by malkahan on 2/19/2017.
  */
 
-function returnParsedOutput(config) {
-  var lines = [];
-  var latestAddedIndex = config.jobs.length - 1;
-  var rawFile = new XMLHttpRequest();
-  rawFile.open('GET', config.jobs[latestAddedIndex].url.concat('/lastStableBuild/consoleText'), false);
-  rawFile.onreadystatechange = function() {
-    if (rawFile.readyState === 4) {
-      if (rawFile.status === 200 || rawFile.status == 0) {
-        var allText = rawFile.responseText;
-        lines = allText.split('\n');
-        var arrayOfCSSElements = _.filter(lines, function(line) {
-          return line.includes("INFO: Executing Clicking");
-        });
+function getLogs(config, cb) {
+  var ajaxCalls = [];
+  var countActive = 0;
 
-        arrayOfCSSElements = _.filter(arrayOfCSSElements, function(line) {
-          return !line.includes("By.xpath:");
-        });
-        console.log(countDuplications(arrayOfCSSElements, config));
-      }
+  for (var j = 0; j < config.jobs.length; j++) {
+    if (config.jobs[j].active === true) {
+      countActive++;
     }
-  };
-  rawFile.send(null);
+  }
+
+  for (var i = 0; i < config.jobs.length; i++) {
+    if (config.jobs[i].active === true) {
+      $.get(config.jobs[i].url.concat('lastStableBuild/consoleText'), function(data) {
+        ajaxCalls.push(data);
+        if (ajaxCalls.length === countActive) {
+          cb(returnedParsedOutput(ajaxCalls, config));
+        }
+      });
+    }
+  }
 }
 
-function countDuplications(elementsArray, config) {
-  var cssHierarchyElementsArray = createCSSHierarchy(elementsArray, config);
+function returnedParsedOutput(fullLog, config) {
+  var joinedFullLog = fullLog.join('\n');
+  var lines = joinedFullLog.split('\n');
+  var arrayOfCSSElements = _.filter(lines, function(line) {
+    return line.includes("INFO: Executing Clicking");
+  });
+  arrayOfCSSElements = _.filter(arrayOfCSSElements, function(line) {
+    return !line.includes("By.xpath:");
+  });
+  return countDuplications(arrayOfCSSElements, config);
+}
 
+
+function countDuplications(elementsArray, config) {
   var mapOfElements = {};
-  var sortedElementsMap = [];
-  for (var i = 0; i < cssHierarchyElementsArray.length; i++) {
-    var selector = cssHierarchyElementsArray[i];
+  var sortedElementList = [];
+  for (var i = 0; i < elementsArray.length; i++) {
+    var selector = elementsArray[i];
     mapOfElements[selector] = mapOfElements[selector] ? mapOfElements[selector] + 1 : 1;
   }
 
   for (var sel in mapOfElements) {
-    sortedElementsMap.push({selector: sel, count: mapOfElements[sel]});
+    sortedElementList.push({selector: sel, count: mapOfElements[sel]});
   }
 
-  sortedElementsMap.sort(function(sel1, sel2) {
+  sortedElementList.sort(function(sel1, sel2) {
     return sel2.count - sel1.count;
   });
-
-  return sortedElementsMap;
+  return createCSSHierarchy(sortedElementList, config);
 }
 
-function createCSSHierarchy(sortedElements, config) {
-  var latestAddedIndex = config.jobs.length - 1;
+function createCSSHierarchy(sortedElements) {
   var cssHierarchy = [];
-  for (var i = 0; i < sortedElements.length; i++) {
-    cssHierarchy[i] = sortedElements[i].substring(sortedElements[i].indexOf('({') + 2, sortedElements[i].indexOf('})'));
+  var maxValue = sortedElements[0].count;
+
+  for (var j = 0; j < sortedElements.length; j++) {
+    var selector = sortedElements[j].selector;
+    cssHierarchy[j] = selector.substring(selector.indexOf('({') + 2, selector.indexOf('})'));
   }
 
-  for (var j = 0; j < cssHierarchy.length; j++) {
-    cssHierarchy[j] = cssHierarchy[j].replaceAll(['By.cssSelector:', ',', 'By.className: '], ['', '', " \."]);
-    cssHierarchy[j] = '.prism-'.concat(config.jobs[latestAddedIndex].alias.concat(cssHierarchy[j]));
+  for (var k = 0; k < cssHierarchy.length; k++) {
+    cssHierarchy[k] = cssHierarchy[k].replaceAll(['By.cssSelector:', ',', 'By.className: '], ['', '', " \."]);
+    cssHierarchy[k] = cssHierarchy[k].concat(" { background-color: #ff" + calculateElementColor(sortedElements[k].count, maxValue) + "00 !important; outline: 4px solid #ff" + calculateElementColor(sortedElements[k].count, maxValue) + "00 !important; }");
   }
+
   return cssHierarchy;
+}
+
+function calculateElementColor(cssElementCount, maxValue) {
+  var value = cssElementCount / maxValue;
+  var elementColorHex = (parseInt((1 - Number(value)) * 255)).toString(16);
+
+  if (elementColorHex.length == 1) {
+    elementColorHex = '0' + elementColorHex;
+  }
+  return elementColorHex;
 }
 
 String.prototype.replaceAll = function replaceAll(search, replacement) {
