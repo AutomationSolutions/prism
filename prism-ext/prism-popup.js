@@ -9,161 +9,162 @@
     config = loadFromLocalStorage();
     drawAllUIElements(config);
     $('#add-job-button').bind('click', addNewJobToLocalStorageAndUI);
+    $('#show-hide-input')[0].addEventListener('click', hideShowElementsInPopup);
     $('.remove-from-storage-btn').bind('click', deleteFromLocalStorage);
     $('.color-btn').bind('click', function() {
       getLogs(config, getLogsDone)
     });
   });
 
-  //Add New Job To UI
-  function addNewJobToLocalStorageAndUI() {
-    hideShowElementsInPopup('add-jobs-input');
+    //Add New Job To UI
+    function addNewJobToLocalStorageAndUI() {
+      var alias = $('#prism-add-new-alias-job');
+      var url = $('#prism-add-new-url-job');
 
-    var alias = $('#prism-add-new-alias-job');
-    var url = $('#prism-add-new-url-job');
+      //TODO: Add validation check
 
-    //TODO: Add validation check
+      config.jobs.push({
+        alias: alias.val(),
+        url: url.val(),
+        active: false,
+      });
 
-    config.jobs.push({
-      alias: alias.val(),
-      url: url.val(),
-      active: false,
-    });
+      saveToLocalStorage(config);
 
-    saveToLocalStorage(config);
+      drawAllUIElements(config);
 
-    drawAllUIElements(config);
+      $('input[type=text]').val('');
+    }
 
-    $('input[type=text]').val('');
-  }
-
-  //Manipulating checkbox in UI
-  function onChangeJobCheckbox() {
-    var checkboxId = this.id;
-    for (var i = 0; i < config.jobs.length; i++) {
-      if (config.jobs[i].alias === checkboxId.replace('checkbox-btn-', '')) {
-        if (config.jobs[i].active == true) {
-          config.jobs[i].active = false;
-        } else {
-          config.jobs[i].active = true;
+    //Manipulating checkbox in UI
+    function onChangeJobCheckbox() {
+      var checkboxId = this.id;
+      for (var i = 0; i < config.jobs.length; i++) {
+        if (config.jobs[i].alias === checkboxId.replace('checkbox-btn-', '')) {
+          if (config.jobs[i].active == true) {
+            config.jobs[i].active = false;
+          } else {
+            config.jobs[i].active = true;
+          }
+          i = config.jobs.length;
         }
-        i = config.jobs.length;
+        saveToLocalStorage(config);
+        drawAllUIElements(config);
       }
+    }
+
+    //Remove job/s from UI
+    function drawAllUIElements(config) {
+
+      var parentElement = $('#checkbox-container');
+      parentElement.empty();
+      for (var i = 0; i < config.jobs.length; i++) {
+        addJobElementToUI(config.jobs[i].alias, config.jobs[i].active, parentElement);
+      }
+      //TODO: Draw Counter & XPATH radio buttons
+
+      $('input[type=checkbox]').on('change', onChangeJobCheckbox);
+    }
+
+    //General Utils
+    function addJobElementToUI(alias, checked, parentElement) {
+      var allJobs = config.jobs;
+      var jobNameFromURL = '';
+      var jobName = '';
+
+      for (var i = 0; i < config.jobs.length; i++) {
+        jobNameFromURL = allJobs[i].url.substring(allJobs[i].url.lastIndexOfEnd('job/'), allJobs[i].url.length - 1);
+        jobName = allJobs[i].alias == alias ? jobNameFromURL : '';
+      }
+      var divElementsContainer = document.createElement('div');
+      divElementsContainer.id = alias + '-div';
+      parentElement[0].appendChild(divElementsContainer);
+
+
+      var checkboxElement = document.createElement('input');
+      var checkboxIdPrefix = 'checkbox-btn-';
+      var checkboxAttributes = {id: checkboxIdPrefix + alias, type: 'checkbox', value: alias, name: 'selectGroup', class: 'checkbox', checked: checked};
+      setAttributes(checkboxElement, checkboxAttributes);
+      divElementsContainer.appendChild(checkboxElement);
+
+
+      var labelElement = document.createElement('label');
+      var labelAttributes = {class: 'label-txt', title: jobName};
+      labelElement.innerHTML = alias;
+      setAttributes(labelElement, labelAttributes);
+      divElementsContainer.appendChild(labelElement);
+    }
+
+    function sendMessage(message) {
+      chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        chrome.tabs.sendMessage(tabs[0].id, {data: message}, function(response) {
+        });
+      });
+
+    }
+
+    function setAttributes(el, attrs) {
+      for (var key in attrs) {
+        $(el).attr(key, attrs[key]);
+      }
+    }
+
+    function loadFromLocalStorage() {
+      var config;
+      var configJson = localStorage.getItem("prism-settings");
+      if (configJson) {
+        config = JSON.parse(configJson);
+      }
+      else {
+        config = {
+          jobs: []
+        };
+      }
+      return config;
+    }
+
+    function saveToLocalStorage(config) {
+      localStorage.setItem("prism-settings", JSON.stringify(config));
+    }
+
+    function deleteFromLocalStorage() {
+      config.jobs = [];
       saveToLocalStorage(config);
       drawAllUIElements(config);
+      removeStyleFromHead();
     }
-  }
 
-  //Remove job/s from UI
-  function drawAllUIElements(config) {
-
-    var parentElement = $('#checkbox-container');
-    parentElement.empty();
-    for (var i = 0; i < config.jobs.length; i++) {
-      addJobElementToUI(config.jobs[i].alias, config.jobs[i].active, parentElement);
+    function getLogsDone(logsArray) {
+      var cssRulesInOneLine = logsArray.join('\n');
+      removeStyleFromHead();
+      addStyleToHead(cssRulesInOneLine);
     }
-    //TODO: Draw Counter & XPATH radio buttons
 
-    $('input[type=checkbox]').on('change', onChangeJobCheckbox);
-  }
-
-  //General Utils
-  function addJobElementToUI(alias, checked, parentElement) {
-    var allJobs = config.jobs;
-    var jobNameFromURL = '';
-    var jobName = '';
-
-    for (var i = 0; i < config.jobs.length; i++) {
-      jobNameFromURL = allJobs[i].url.substring(allJobs[i].url.lastIndexOfEnd('job/'), allJobs[i].url.length - 1);
-      jobName = allJobs[i].alias == alias ? jobNameFromURL : '';
-    }
-    var divElementsContainer = document.createElement('div');
-    divElementsContainer.id = alias + '-div';
-    parentElement[0].appendChild(divElementsContainer);
-
-
-    var checkboxElement = document.createElement('input');
-    var checkboxIdPrefix = 'checkbox-btn-';
-    var checkboxAttributes = {id: checkboxIdPrefix + alias, type: 'checkbox', value: alias, name: 'selectGroup', class: 'checkbox', checked: checked};
-    setAttributes(checkboxElement, checkboxAttributes);
-    divElementsContainer.appendChild(checkboxElement);
-
-
-    var labelElement = document.createElement('label');
-    var labelAttributes = {class: 'label-txt', title: jobName};
-    labelElement.innerHTML = alias;
-    setAttributes(labelElement, labelAttributes);
-    divElementsContainer.appendChild(labelElement);
-  }
-
-  function sendMessage(message) {
-    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-      chrome.tabs.sendMessage(tabs[0].id, {data: message}, function(response) {
-      });
-    });
-
-  }
-
-  function setAttributes(el, attrs) {
-    for (var key in attrs) {
-      $(el).attr(key, attrs[key]);
-    }
-  }
-
-  function loadFromLocalStorage() {
-    var config;
-    var configJson = localStorage.getItem("prism-settings");
-    if (configJson) {
-      config = JSON.parse(configJson);
-    }
-    else {
-      config = {
-        jobs: []
+    function addStyleToHead(cssRules) {
+      var message = {
+        cssStyleRules: cssRules,
+        actionType: 'add style to header',
+        styleID: 'prism-style'
       };
+      sendMessage(message);
     }
-    return config;
-  }
 
-  function saveToLocalStorage(config) {
-    localStorage.setItem("prism-settings", JSON.stringify(config));
-  }
-
-  function deleteFromLocalStorage() {
-    config.jobs = [];
-    saveToLocalStorage(config);
-    drawAllUIElements(config);
-    removeStyleFromHead();
-  }
-
-  function getLogsDone(logsArray) {
-    var cssRulesInOneLine = logsArray.join('\n');
-    removeStyleFromHead();
-    addStyleToHead(cssRulesInOneLine);
-  }
-
-  function addStyleToHead(cssRules) {
-    var message = {
-      cssStyleRules: cssRules,
-      actionType: 'add style to header',
-      styleID: 'prism-style'
-    };
-    sendMessage(message);
-  }
-
-  function removeStyleFromHead() {
-    sendMessage({actionType: 'remove style from header'});
-  }
-
-
-  function hideShowElementsInPopup(selector) {
-    var listOfElementsToHideShow = document.getElementsByClassName(selector);
-    for (var i = 0; i < listOfElementsToHideShow.length; i++) {
-      listOfElementsToHideShow[i].style.display = 'none';
+    function removeStyleFromHead() {
+      sendMessage({actionType: 'remove style from header'});
     }
-  }
 
-  String.prototype.lastIndexOfEnd = function(string) {
-    var io = this.lastIndexOf(string);
-    return io == -1 ? -1 : io + string.length;
-  }
-})();
+
+    function hideShowElementsInPopup() {
+      var elementBlockToShowHide = document.body.getElementsByClassName('add-jobs-input-block')[0];
+      if (elementBlockToShowHide.style.display == 'inline') {
+        elementBlockToShowHide.style.display = 'none';
+      } else {
+        elementBlockToShowHide.style.display = 'inline';
+      }
+    }
+
+    String.prototype.lastIndexOfEnd = function(string) {
+      var io = this.lastIndexOf(string);
+      return io == -1 ? -1 : io + string.length;
+    }
+  })();

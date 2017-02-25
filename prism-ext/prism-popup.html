@@ -2,19 +2,22 @@
 <html lang="en">
 <head>
     <title>AutomationHeatMap</title>
+    <link type="text/css" href="prism-popup.css" rel="stylesheet">
     <script src="lib/jquery-3.1.1.min.js"></script>
     <script src="lib/loadash.js"></script>
     <script src="prism-parser.js"></script>
     <script src="prism-popup.js"></script>
-    <link type="text/css" href="prism-popup.css" rel="stylesheet">
 </head>
 <body>
 <div class="prism-main">
     <div class="header">Automation heat map</div>
     <div>
-        <input class="add-jobs-input" id="prism-add-new-alias-job" type="text" placeholder="Set Job UI Name">
-        <input class="add-jobs-input" id="prism-add-new-url-job" type="text" placeholder="Paste job URL here">
+        <div class="add-jobs-input-block">
+            <input class="add-jobs-input" id="prism-add-new-alias-job" type="text" placeholder="Set Job UI Name">
+            <input class="add-jobs-input" id="prism-add-new-url-job" type="text" placeholder="Paste job URL here">
+        </div>
         <button id="add-job-button">Add</button>
+        <button id="show-hide-input">Show/Hide</button>
     </div>
     <div id="checkbox-container">
     </div>

@@ -39,6 +39,10 @@
     display: block;
 }
 
+.add-jobs-input-block{
+    display: inline;
+}
+
 #add-job-button {
     float: right;
 }
